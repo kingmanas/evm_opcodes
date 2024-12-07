@@ -1,0 +1,63 @@
+// 60008060093d393df3 --> contract creation code
+// 60018060093d393df35f with PUSH0
+
+/*Interface*/
+
+#define function updateHorseNumber(uint256) nonpayable returns()
+#define function readNumberOfHorses() view returns(uint256)
+
+#define constant NUMBER_OF_HORSES_STORAGE_SLOT = FREE_STORAGE_POINTER() 
+
+
+#define macro MAIN() = takes(0) returns(0) {
+    0x00  // [0]
+    calldataload  //[calldata]
+    0xe0          //[0xe0 , calldataload] 
+    shr          //[function_selector]
+
+    dup1         //[function_selector , function_selector]
+    __FUNC_SIG(updateHorseNumber)
+    //0xcdfead2e   //[0xcdfead2e ,function_selector , function_selector]
+    eq           //[true_if_equal , function_selector]
+    updateJump   //[updateHorseNumberPC , true/false , function_selector]
+    jumpi        //[function_selector]
+
+    // readNumberOfHorses 0xe026c017
+
+    0xe026c017    //[0xe026c017 ,function_selector]
+    eq            //[true_If_function_selector_matches]
+    readJump      //[readJump , true_If_function_selector_matches]
+    jumpi         //[]
+
+    0x00 0x00 revert
+
+    updateJump:
+        SET_NUMBER_OF_HORSES()
+    
+    readJump:
+        GET_NUMBER_OF_HORSES()
+}
+
+#define macro SET_NUMBER_OF_HORSES() = takes(0) returns(0) {
+    0x04              // [4]
+    calldataload      //[value]
+    [NUMBER_OF_HORSES_STORAGE_SLOT]   //[storage_slot , value , function_selector] where we wanna store that data
+    sstore
+    stop
+}
+
+#define macro GET_NUMBER_OF_HORSES() = takes(0)
+returns(0) {
+    // 1. Get the storage slot
+    // 2. Load the value fo that slot into memory
+    // 3. return
+    [NUMBER_OF_HORSES_STORAGE_SLOT] // [key]
+    sload                           // [value]
+    0x00                            // [0 , value]
+    mstore                          // []      // Memory: [value]
+
+    0x20 0x00 return                // []
+}
+
+// 0x0102
+// 0b100000010

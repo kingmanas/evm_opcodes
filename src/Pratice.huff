@@ -1,0 +1,47 @@
+#define function saveNumber(uint256) nonpayable returns()
+#define function getNumber() view returns(uint256)
+
+#define constant GET_FREE_STORAGE_POINT = FREE_STORAGE_POINTER()
+
+#define macro MAIN() = takes(0) returns(0){
+    0x00                 //[0]
+    calldataload         //[calldata]
+    0xe0                 //[0xe0 , calldata]
+    shr                 //[function_selector]
+
+    dup1    //  [function_selector , function_selector]
+    __FUNC_SIG(saveNumber)  // [fs ,function_selector , function_selector]
+    eq                      //[treu ,function_selector]
+    sNumber                 //[sNumberPC , t/f , function_selector]
+    jumpi                   //[function_selector]
+
+    __FUNC_SIG(getNumber)    // [function_selector , function_selector]
+    eq
+    gNumber
+    jumpi   // []
+
+    0x00 0x00 revert
+
+    sNumber:
+        SAVE_NUMBER()
+    
+    gNumber:
+        GET_NUMBER()
+}
+
+#define macro SAVE_NUMBER() = takes(0) returns(0){
+    0x40
+    calldataload
+    [GET_FREE_STORAGE_POINT]
+    sstore
+    stop
+}
+
+#define macro GET_NUMBER() = takes(0) returns(0){
+    [GET_FREE_STORAGE_POINT]
+    sload
+    0x00
+    mstore
+
+    0x20 0x00 revert
+}
